@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:5173', // or your frontend URL
+  origin: 'https://one-focus-six.vercel.app', // or your frontend URL
   credentials: true
 }));
 
@@ -268,4 +268,5 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 
 });
+
 
