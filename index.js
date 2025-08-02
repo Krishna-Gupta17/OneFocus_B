@@ -79,6 +79,9 @@ const userSchema = new mongoose.Schema({
 });
 
 const User = mongoose.model('User', userSchema);
+app.get('/', (req, res) => {
+  res.send('✅ OneFocus server is running');
+});
 
 // Routes
 app.get('/api/users/:uid', async (req, res) => {
@@ -265,3 +268,4 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 
 });
+
