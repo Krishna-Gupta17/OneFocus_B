@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-  origin: 'one-focus-six.vercel.app', // or your frontend URL
+  origin: 'http://localhost:5173', // or your frontend URL
   credentials: true
 }));
 
