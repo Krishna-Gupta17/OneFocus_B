@@ -10,7 +10,7 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-  origin: 'https://onefocus.onrender.com', // or your frontend URL
+  origin: ['https://onefocus.onrender.com', 'http://localhost:5173'],// or your frontend URL
   credentials: true
 }));
 
