@@ -5,6 +5,7 @@ const userSchema = new mongoose.Schema({
   displayName: { type: String, default: '' },
   profilePicture: { type: String, default: '' },
   bio: { type: String, default: '' },
+  invitedToRoomId: { type: String, default: null },
   studyStats: {
     totalStudyTime: { type: Number, default: 0 },
     sessionsCompleted: { type: Number, default: 0 },

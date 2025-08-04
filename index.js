@@ -2,12 +2,13 @@ import express from 'express';
 import mongoose from 'mongoose';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import gameRoutes from './routes/gameRoutes.js';
+import setupWebSocket from './routes/gameRoutes.js';
 dotenv.config();
-
 const app = express();
 const PORT = process.env.PORT || 5000;
-
+import http from 'http';
+import { Server } from 'socket.io';
+const server = http.createServer(app);
 // Middleware
 app.use(cors({
   origin: ['https://onefocus.onrender.com', 'http://localhost:5173'],// or your frontend URL
@@ -26,15 +27,58 @@ async function connectmongo(url) {
 
 // User Schema
 import User from './models/User.js';
+
 app.get('/', (req, res) => {
   res.send('✅ OneFocus server is running');
 });
 
 
-app.use('/compete',gameRoutes);
+
+
+const io = new Server(server, {
+  cors: { origin: '*', methods: ['GET', 'POST'] },
+});
+
+setupWebSocket(io);
 
 
 // Routes
+
+import GameRoom from './models/GameRoom.js';
+
+app.get('/api/games/:roomId', async (req, res) => {
+  try {
+    const room = await GameRoom.findOne({ roomId: req.params.roomId });
+    if (!room) return res.status(404).json({ message: 'Room not found' });
+    res.json(room);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+import { nanoid } from 'nanoid'; // or use UUID
+
+app.post('/api/games/create', async (req, res) => {
+  const { hostUid } = req.body;
+  const roomId = nanoid(8);
+  const newRoom = new GameRoom({ roomId, participants: [hostUid] });
+  await newRoom.save();
+  res.json({ roomId });
+});
+
+app.put('/api/users/:uid/clear-invite', async (req, res) => {
+  try {
+    const user = await User.findOne({ uid: req.params.uid });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    user.invitedToRoomId = null;
+    await user.save();
+    res.json({ message: 'Invite cleared' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+
 app.get('/api/users/:uid', async (req, res) => {
   try {
     const user = await User.findOne({ uid: req.params.uid });
@@ -200,6 +244,22 @@ app.post('/api/users/:uid/accept-friend-request', async (req, res) => {
   }
 });
 
+app.post('/api/users/:uid/reject-friend-request', async (req, res) => {
+  const { fromUid } = req.body;
+  try {
+    const user = await User.findOne({ uid: req.params.uid });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    user.friendRequests = user.friendRequests.filter(req => req.from !== fromUid);
+    await user.save();
+
+    res.json({ message: 'Friend request rejected' });
+  } catch (err) {
+    console.error('Error rejecting request:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 app.post('/api/users/:uid/videos', async (req, res) => {
   try {
     const user = await User.findOne({ uid: req.params.uid });
@@ -215,7 +275,7 @@ app.post('/api/users/:uid/videos', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 
 });
