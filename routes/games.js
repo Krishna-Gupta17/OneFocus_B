@@ -5,8 +5,7 @@ const router=Router();
 router.post('/create', async (req, res) => {
   const { hostUid } = req.body;
   const roomId = nanoid(8);
-  const newRoom = new GameRoom({ roomId, participants: [hostUid] });
-  await newRoom.save();
+const newRoom = new GameRoom({ roomId, hostUid: req.body.hostUid });  await newRoom.save();
   res.json({ roomId });
 });
 

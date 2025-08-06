@@ -1,6 +1,6 @@
 // User Schema
 import User from '../models/User.js';
-import Match from '../models/Match.js'; // your Match schema
+import GameRoomModel from '../models/GameRoom.js'; // your Match schema
 import {Router} from 'express';
 const router=Router();
 
@@ -207,36 +207,46 @@ router.get('/:uid/match-history', async (req, res) => {
   const { uid } = req.params;
 
   try {
-    // Find matches where the user is a participant
-    const matches = await Match.find({ participants: uid }).lean();
+    // Find all game rooms where the user was a participant
+    const rooms = await GameRoomModel.find({ participants: uid }).lean();
 
-    const enrichedMatches = await Promise.all(
-      matches.map(async match => {
-        // Fetch user details for all participants
-        const users = await User.find({ uid: { $in: match.participants } }).lean();
-        const userMap = Object.fromEntries(users.map(u => [u.uid, u.name]));
+    const matchEntries = [];
 
-        const players = match.participants.map(pid => ({
-          uid: pid,
-          name: userMap[pid] || 'Unknown',
-          time: match.durations?.[pid] || 0
-        }));
+    for (const room of rooms) {
+      for (const match of room.matchHistory || []) {
+        matchEntries.push({
+          id: `${room.roomId}-${match.timestamp?.toISOString()}`,
+          createdAt: match.timestamp,
+          winnerUid: match.winnerUid,
+          winnerName: match.winnerName,
+          targetTime: match.targetTime,
+          players: room.participants.map(pid => ({
+            uid: pid,
+            name: 'Unknown', // We'll enrich below
+            time: 0 // optional enhancement if durations are tracked
+          }))
+        });
+      }
+    }
 
-        return {
-          id: match._id,
-          createdAt: match.createdAt,
-          winner: userMap[match.winner] || 'Unknown',
-          players
-        };
-      })
-    );
+    // Fetch user display names for participants
+    const allParticipantUIDs = [...new Set(matchEntries.flatMap(m => m.players.map(p => p.uid)))];
+    const users = await User.find({ uid: { $in: allParticipantUIDs } }).lean();
+    const userMap = Object.fromEntries(users.map(u => [u.uid, u.displayName || u.name]));
+
+    // Update player names
+    matchEntries.forEach(match => {
+      match.players.forEach(p => {
+        p.name = userMap[p.uid] || 'Unknown';
+      });
+    });
 
     // Sort by most recent
-    enrichedMatches.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    matchEntries.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
-    res.json(enrichedMatches);
+    res.json(matchEntries);
   } catch (error) {
-    console.error('Error fetching match history:', error);
+    console.error('Error fetching embedded match history:', error);
     res.status(500).json({ error: 'Failed to fetch match history' });
   }
 });
