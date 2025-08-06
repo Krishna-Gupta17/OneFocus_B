@@ -1,5 +1,6 @@
 // User Schema
 import User from '../models/User.js';
+import Match from '../models/Match.js'; // your Match schema
 import {Router} from 'express';
 const router=Router();
 
@@ -201,5 +202,45 @@ router.post('/videos', async (req, res) => {
     res.status(400).json({ message: error.message });
   }
 });
+
+router.get('/:uid/match-history', async (req, res) => {
+  const { uid } = req.params;
+
+  try {
+    // Find matches where the user is a participant
+    const matches = await Match.find({ participants: uid }).lean();
+
+    const enrichedMatches = await Promise.all(
+      matches.map(async match => {
+        // Fetch user details for all participants
+        const users = await User.find({ uid: { $in: match.participants } }).lean();
+        const userMap = Object.fromEntries(users.map(u => [u.uid, u.name]));
+
+        const players = match.participants.map(pid => ({
+          uid: pid,
+          name: userMap[pid] || 'Unknown',
+          time: match.durations?.[pid] || 0
+        }));
+
+        return {
+          id: match._id,
+          createdAt: match.createdAt,
+          winner: userMap[match.winner] || 'Unknown',
+          players
+        };
+      })
+    );
+
+    // Sort by most recent
+    enrichedMatches.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    res.json(enrichedMatches);
+  } catch (error) {
+    console.error('Error fetching match history:', error);
+    res.status(500).json({ error: 'Failed to fetch match history' });
+  }
+});
+
+
 
 export default router;
