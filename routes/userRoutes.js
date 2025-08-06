@@ -42,7 +42,7 @@ router.put('/:uid/clear-invite', async (req, res) => {
   }
 });
 
-router.put('/:uid/', async (req, res) => {
+router.put('/:uid', async (req, res) => {
   try {
     const user = await User.findOneAndUpdate(
       { uid: req.params.uid },
