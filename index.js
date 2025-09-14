@@ -16,7 +16,7 @@ import User from './models/User.js';
 
 // Middleware
 app.use(cors({
-  origin: ['https://onefocus.onrender.com', 'http://localhost:5173'],// or your frontend URL
+  origin: ['https://one-pmib.onrender.com', 'http://localhost:5173'],// or your frontend URL
   credentials: true
 }));
 app.use(express.json());
@@ -58,6 +58,7 @@ app.use("/api/games",gameRouter);
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
 
 
 
