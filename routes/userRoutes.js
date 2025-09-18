@@ -188,7 +188,7 @@ router.post('/:uid/reject-friend-request', async (req, res) => {
   }
 });
 
-router.post('/videos', async (req, res) => {
+router.post('/:uid/videos', async (req, res) => {
   try {
     const user = await User.findOne({ uid: req.params.uid });
     if (!user) {
