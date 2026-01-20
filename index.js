@@ -56,7 +56,11 @@ app.use("/api/users",userRouter);
 app.use("/api/games",gameRouter);
 
 server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  setInterval(() => {
+    fetch('https://buggit-trailer.onrender.com/ping')
+      .then(() => console.log('Pinged self!'))
+      .catch(() => console.log('Self ping failed.'));
+  }, 1000 * 60 * 10);
 });
 
 
