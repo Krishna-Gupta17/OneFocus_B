@@ -16,7 +16,7 @@ import User from './models/User.js';
 
 // Middleware
 app.use(cors({
-  origin: ['https://onefocused.onrender.com', 'http://localhost:5173'],// or your frontend URL
+  origin: ['https://onefocused.onrender.com', 'http://localhost:5173', 'https://onefocus-67r8.onrender.com'],// or your frontend URL
   credentials: true
 }));
 app.use(express.json());
@@ -65,6 +65,7 @@ server.listen(PORT, () => {
       .catch(() => console.log('Self ping failed.'));
   }, 1000 * 60 * 10);
 });
+
 
 
 
