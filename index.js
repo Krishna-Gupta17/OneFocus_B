@@ -38,6 +38,9 @@ setupWebSocket(io);
 app.get('/', (req, res) => {
   res.send(' OneFocus server is running');
 });
+app.get('/ping', (req, res) => {
+  res.send('pong')
+});
 
 app.get('/api/leaderboard', async (req, res) => {
   try {
@@ -57,11 +60,12 @@ app.use("/api/games",gameRouter);
 
 server.listen(PORT, () => {
   setInterval(() => {
-    fetch('https://buggit-trailer.onrender.com/ping')
+    fetch('https://onefocus-b-5u0x.onrender.com/ping')
       .then(() => console.log('Pinged self!'))
       .catch(() => console.log('Self ping failed.'));
   }, 1000 * 60 * 10);
 });
+
 
 
 
