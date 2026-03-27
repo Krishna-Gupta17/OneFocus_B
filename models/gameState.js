@@ -12,6 +12,7 @@ const game = {
         progress: new Map(),
         winner: null,
         winnerName: null,
+        isTie: false,
       });
     }
   },
@@ -31,13 +32,50 @@ const game = {
     }
   },
 
+  removeParticipant: (roomId, uid) => {
+    const room = gameRooms.get(roomId);
+    if (!room) return 0;
+
+    room.participants = room.participants.filter((participantUid) => participantUid !== uid);
+    room.progress.delete(uid);
+
+    if (room.winner === uid) {
+      room.winner = null;
+      room.winnerName = null;
+    }
+
+    if (room.participants.length === 0) {
+      gameRooms.delete(roomId);
+      return 0;
+    }
+
+    return room.participants.length;
+  },
+
   updateProgress: (roomId, uid, time) => {
     const room = gameRooms.get(roomId);
     if (room && room.progress.has(uid)) {
       room.progress.set(uid, time);
-      return time >= room.targetTime && !room.winner;
+      
+      // Check if this player reached target time
+      if (time >= room.targetTime && !room.winner) {
+        // Check if other participants also reached the target time (within 2 second threshold)
+        const completedPlayers = [];
+        room.progress.forEach((playerTime, playerId) => {
+          if (playerTime >= room.targetTime) {
+            completedPlayers.push(playerId);
+          }
+        });
+        
+        // If 2 or more players completed at approximately the same time, it's a tie
+        if (completedPlayers.length >= 2) {
+          return { type: 'tie', players: completedPlayers };
+        }
+        // Otherwise, it's a single winner
+        return { type: 'winner', player: uid };
+      }
     }
-    return false;
+    return null;
   },
 
   declareWinner: (roomId, uid, displayName) => {
@@ -45,9 +83,21 @@ const game = {
     if (room && !room.winner) {
       room.winner = uid;
       room.winnerName = displayName;
+      room.isTie = false;
       return { uid, displayName };
     }
     return null;
+  },
+
+  declareTie: (roomId) => {
+    const room = gameRooms.get(roomId);
+    if (room && !room.winner) {
+      room.winner = 'tie';
+      room.winnerName = 'Tie';
+      room.isTie = true;
+      return true;
+    }
+    return false;
   },
 
   getRoom: (roomId) => gameRooms.get(roomId),
