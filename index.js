@@ -16,7 +16,7 @@ import User from './models/User.js';
 
 // Middleware
 app.use(cors({
-  origin: ['https://onefocused.onrender.com', 'http://localhost:5173', 'https://onefocus-67r8.onrender.com','https://onesolution-kzv5.onrender.com'],// or your frontend URL
+  origin: ['https://onefocused.onrender.com', 'http://localhost:5173', 'https://onefocus-67r8.onrender.com','https://onesolution-kzv5.onrender.com','https://one-focus-pi.vercel.app/'],// or your frontend URL
   credentials: true
 }));
 app.use(express.json());
