@@ -16,7 +16,7 @@ import User from './models/User.js';
 
 // Middleware
 app.use(cors({
-  origin: ['https://onefocused.onrender.com', 'http://localhost:5173', 'https://onefocus-67r8.onrender.com'],// or your frontend URL
+  origin: ['https://onefocused.onrender.com', 'http://localhost:5173', 'https://onefocus-67r8.onrender.com','https://onesolution-kzv5.onrender.com'],// or your frontend URL
   credentials: true
 }));
 app.use(express.json());
@@ -60,7 +60,7 @@ app.use("/api/games",gameRouter);
 
 server.listen(PORT, () => {
   setInterval(() => {
-    fetch('https://onefocus-b-5u0x.onrender.com/ping')
+    fetch('https://onefocus-b-zloi.onrender.com/ping')
       .then(() => console.log('Pinged self!'))
       .catch(() => console.log('Self ping failed.'));
   }, 1000 * 60 * 10);
